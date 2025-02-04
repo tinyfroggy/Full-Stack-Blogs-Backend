@@ -10,6 +10,11 @@ class BlogBase(BaseModel):
 class BlogCreate(BlogBase):
     pass
 
+class BlogUpdate(BlogBase):
+    BlogUpdate: datetime
+
+class BlogResponse(BlogBase):
+    id: int
 
 class Blog(BlogBase):
     id: int

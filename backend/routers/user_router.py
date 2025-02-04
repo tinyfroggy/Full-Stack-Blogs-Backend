@@ -7,7 +7,8 @@ from sqlalchemy.orm import Session
 
 # Importing custom services for database session and user services
 from services.get_db_service import get_db  # For database connection
-from services.user_service import UserServicesClass  # For user-related business logic
+# For user-related business logic
+from services.user_service import UserServicesClass
 
 # Importing schemas for user data validation and response format
 from schemas.users_schema import UserCreate, User, UserUpdate
@@ -35,7 +36,7 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
 
 # Endpoint to generate JWT token for authentication
-@router.post("/token")
+@router.post("/token", status_code=status.HTTP_200_OK)
 async def generate_token(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
@@ -64,7 +65,7 @@ async def get_all_users(db: Session = Depends(get_db)):
 
 
 # Update user endpoint
-@router.put("/users/me", response_model=User)
+@router.put("/users/me", response_model=User, status_code=status.HTTP_200_OK)
 async def update_user(
     user_update: UserUpdate,
     user=Depends(
@@ -80,9 +81,31 @@ async def update_user(
 
 
 # Endpoint to delete user
-@router.delete("/users/me", response_model=dict)
+@router.delete("/users/me", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(
-    user=Depends(UserServicesClass.get_current_user),  # This dependency returns a SQLAlchemy User instance
+    # This dependency returns a SQLAlchemy User instance
+    user=Depends(UserServicesClass.get_current_user),
     db: Session = Depends(get_db),
 ):
+    return await UserServicesClass.delete_user(db=db, user=user)
+
+
+# get one user
+@router.get("/users/{user_id}", response_model=User)
+async def get_user(user_id: int, db: Session = Depends(get_db)):
+    return await UserServicesClass.get_user_by_id(user_id=user_id, db=db)
+
+
+# Update user by ID
+@router.put("/users/{user_id}", response_model=User, status_code=status.HTTP_200_OK)
+async def update_user_by_id(user_id: int, user_update: UserUpdate, db: Session = Depends(get_db)):
+    user = await UserServicesClass.get_user_by_id(user_id=user_id, db=db)
+    updated_user = await UserServicesClass.update_user(user_update=user_update, db=db, user=user)
+    return updated_user
+
+
+# Delete user by ID
+@router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user_by_id(user_id: int, db: Session = Depends(get_db)):
+    user = await UserServicesClass.get_user_by_id(user_id=user_id, db=db)
     return await UserServicesClass.delete_user(db=db, user=user)
