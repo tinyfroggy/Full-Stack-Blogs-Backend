@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from services.get_db_service import get_db
 from services.blog_service import BlogServicesClass
-from schemas.blogs_schema import BlogCreate, Blog, BlogUpdate, BlogResponse
+from schemas.blogs_schema import BlogCreate, Blog, BlogUpdate
 from schemas import users_schema
 from services.user_service import UserServicesClass
 

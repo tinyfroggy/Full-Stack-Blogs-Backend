@@ -1,7 +1,8 @@
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from schemas import users_schema
 from models.blogs_models import Blog
+from exceptions.handlers import handle_exception
 from schemas import blogs_schema
 import os
 from dotenv import load_dotenv
@@ -11,18 +12,18 @@ _JWT_SECRET = os.getenv("_JWT_SECRET")
 
 
 class BlogServicesClass:
+    @staticmethod
     async def get_all_blogs_from_current_user(user: users_schema.User, db: Session):
         try:
             blogs = db.query(Blog).filter(Blog.owner_id == user.id).all()
             if not blogs:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND, detail="No blogs found"
-                )
+                raise handle_exception(404, "No blogs found")
             return list(map(blogs_schema.Blog.from_orm, blogs))
+
+        except HTTPException as he:
+            raise he
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-            )
+            raise handle_exception(500, str(e))
 
     @staticmethod
     async def get_one_blog_from_current_user(
@@ -32,21 +33,17 @@ class BlogServicesClass:
             blog = db.query(Blog).filter(Blog.id == blog_id).first()
 
             if not blog:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND, detail="Blog not found"
-                )
+                handle_exception(404, "Blog not found")
 
             if user.id != blog.owner_id:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized"
-                )
+                handle_exception(401, "Unauthorized")
 
             return blogs_schema.Blog.from_orm(blog)
 
+        except HTTPException as he:
+            raise he
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-            )
+            handle_exception(500, str(e))
 
     @staticmethod
     async def create_blog(
@@ -63,11 +60,9 @@ class BlogServicesClass:
 
         except Exception as e:
             db.rollback()
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Error creating blog: {str(e)}",
-            )
+            handle_exception(500, str(e))
 
+    @staticmethod
     async def update_blog(
         blog: blogs_schema.BlogUpdate,
         blog_id: int,
@@ -78,14 +73,10 @@ class BlogServicesClass:
             blog_obj = db.query(Blog).filter(Blog.id == blog_id).first()
 
             if not blog_obj:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND, detail="Blog not found"
-                )
+                handle_exception(404, "Blog not found")
 
             if user.id != blog_obj.owner_id:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized"
-                )
+                handle_exception(401, "Unauthorized")
 
             for key, value in blog.model_dump().items():
                 setattr(blog_obj, key, value)
@@ -94,47 +85,45 @@ class BlogServicesClass:
             db.refresh(blog_obj)
 
             return blogs_schema.Blog.from_orm(blog_obj)
+
+        except HTTPException as he:
+            db.rollback()
+            raise he
         except Exception as e:
             db.rollback()
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Error updating blog: {str(e)}",
-            )
+            handle_exception(500, str(e))
 
+    @staticmethod
     async def delete_blog(blog_id: int, user: users_schema.User, db: Session):
         try:
             blog_obj = db.query(Blog).filter(Blog.id == blog_id).first()
 
             if not blog_obj:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND, detail="Blog not found"
-                )
+                handle_exception(404, "Blog not found")
 
             if user.id != blog_obj.owner_id:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized"
-                )
+                handle_exception(401, "Unauthorized")
 
             db.delete(blog_obj)
             db.commit()
+
+        except HTTPException as he:
+            db.rollback()
+            raise he
         except Exception as e:
             db.rollback()
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Error deleting blog: {str(e)}",
-            )
+            handle_exception(500, str(e))
 
     @staticmethod
     async def get_all_blogs(db: Session):
         try:
             blogs = db.query(Blog).all()
             if not blogs:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND, detail="No blogs found"
-                )
+                handle_exception(404, "No blogs found")
 
             return list(map(blogs_schema.Blog.from_orm, blogs))
+
+        except HTTPException as he:
+            raise he
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-            )
+            handle_exception(500, str(e))

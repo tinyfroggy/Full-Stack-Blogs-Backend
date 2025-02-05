@@ -1,20 +1,12 @@
-# Importing necessary modules and classes from FastAPI
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
-
-# Importing SQLAlchemy's Session class for database interaction
 from sqlalchemy.orm import Session
-
-# Importing custom services for database session and user services
-from services.get_db_service import get_db  # For database connection
-# For user-related business logic
+from services.get_db_service import get_db
 from services.user_service import UserServicesClass
-
-# Importing schemas for user data validation and response format
 from schemas.users_schema import UserCreate, User, UserUpdate
-from typing import List  # For list response typing
+from typing import List
+from exceptions.handlers import handle_exception
 
-# Initializing FastAPI router
 router = APIRouter()
 
 
@@ -23,15 +15,12 @@ router = APIRouter()
 async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     # Check if email is already registered
     db_user = await UserServicesClass.get_user_by_email(email=user.email, db=db)
-    if db_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
-        )
 
-    # Create the user
+    if db_user:
+        return handle_exception(400, "Email already registered")
+
     new_user = await UserServicesClass.create_user(user=user, db=db)
 
-    # Return the created user
     return new_user
 
 
@@ -45,9 +34,7 @@ async def generate_token(
     )
 
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
-        )
+        return handle_exception(401, "Invalid Credentials")
 
     return await UserServicesClass.create_token(user=user)
 

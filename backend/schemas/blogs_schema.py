@@ -1,5 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel
+from typing import Optional
 
 
 class BlogBase(BaseModel):
@@ -9,16 +10,15 @@ class BlogBase(BaseModel):
 
 class BlogCreate(BlogBase):
     pass
-
 class BlogUpdate(BlogBase):
-    BlogUpdate: datetime
+    pass
 
 class BlogResponse(BlogBase):
     id: int
 
 class Blog(BlogBase):
     id: int
-    owner_id: int
+    owner_id: Optional[int]
     created_at: datetime
     updated_at: datetime
 

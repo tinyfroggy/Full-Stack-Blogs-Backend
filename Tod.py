@@ -28,7 +28,7 @@ get all blogs for current user -> ✅
 update blog -> ✅
 delete blog -> ✅ 
 
-add folder for authentication and move all functions to it ->
+add  tests API -> ✅
 
 Like endpoints
 connect to blog ->
@@ -36,13 +36,9 @@ like blog ->
 unlike blog ->
 
 add alembic for migrations ->
-add atomic tests API ->
+add folder for authentication and move all functions to it ->
 
 
-{
-"email": "kamel@test.com",
-"username": "frog1",
-}
 """
 
 

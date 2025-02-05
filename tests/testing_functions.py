@@ -2,17 +2,24 @@ import requests
 import os
 from dotenv import load_dotenv
 from datetime import datetime
+import uuid
 
 load_dotenv()
 BASE_URL = os.getenv("BASE_URL")
 
 
+# ----------------
+# Helper Functions
+# ----------------
+
 class TestingFunctionsClass:
     @staticmethod
     def new_user_payload():
+        unique_email = f"kamle_{uuid.uuid4()}@orm.com"
+        username = f"kamel_{uuid.uuid4()}"
         return {
-            "email": "kamle@orm.com",
-            "username": "tinyFrog",
+            "email": unique_email,
+            "username": username,
             "password": "password"
         }
 
@@ -82,7 +89,7 @@ class TestingFunctionsClass:
         return {
             "title": "Updated Blog Title",
             "content": "This is updated content.",
-            "updated_at": datetime.utcnow().isoformat() 
+            "updated_at": datetime.utcnow().isoformat()
         }
 
     @staticmethod
@@ -109,3 +116,4 @@ class TestingFunctionsClass:
     def get_all_blogs(token):
         headers = {"Authorization": f"Bearer {token}"}
         return requests.get(BASE_URL + "/blogs", headers=headers)
+
