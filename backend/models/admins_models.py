@@ -1,7 +1,10 @@
 from datetime import datetime
+
 from sqlalchemy import Column, Integer, String, DateTime, Boolean
+
+from passlib.hash import bcrypt
+
 from dependencies.database import Base
-import passlib.hash as _hash
 
 class Admin(Base):
     __tablename__ = "admins"
@@ -13,8 +16,8 @@ class Admin(Base):
     date_created = Column(DateTime, default=datetime.utcnow)
 
     def verify_password(self, password: str) -> bool:
-        return _hash.bcrypt.verify(password, self.hashed_password)  
+        return bcrypt.verify(password, self.hashed_password)  
 
     @classmethod
     def hash_password(cls, password: str) -> str:
-        return _hash.bcrypt.hash(password)
+        return bcrypt.hash(password)

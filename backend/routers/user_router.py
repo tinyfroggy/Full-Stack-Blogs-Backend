@@ -1,12 +1,14 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
-from services.get_db_service import get_db
 
-from services.user_service import UserServicesClass
 from schemas.users_schema import UserCreate, User, UserUpdate
 from schemas.blogs_schema import Blog
 
-from typing import List
+from services.user_service import UserServicesClass
+from services.get_db_service import get_db
+
 from exceptions.handlers import handle_exception
 
 router = APIRouter()

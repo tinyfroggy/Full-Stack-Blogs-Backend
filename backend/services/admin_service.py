@@ -1,22 +1,24 @@
 from fastapi import HTTPException, Depends
 from sqlalchemy.orm import Session
+from email_validator import validate_email, EmailNotValidError
+import bcrypt
+from jwt import PyJWTError, decode, ExpiredSignatureError
+from dotenv import load_dotenv
+import os
+
+from fastapi.security import OAuth2PasswordBearer
+
 from models.users_models import User
 from models.admins_models import Admin
 from schemas import admin_schema
-import jwt as _jwt
-from dotenv import load_dotenv
-from fastapi.security import OAuth2PasswordBearer
-import os
 from schemas.admin_schema import AdminMaineSchema, AdminCreate
+
 from services.get_db_service import get_db
-from email_validator import validate_email, EmailNotValidError
 from exceptions.handlers import handle_exception
-import bcrypt
-from datetime import datetime, timedelta
 
 
 load_dotenv()
-_JWT_SECRET = os.getenv("_JWT_SECRET")
+JWT_SECRET = os.getenv("_JWT_SECRET")
 admin_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/1/admin/token")
 
 
@@ -66,7 +68,7 @@ class AdminServicesClass:
             return list(map(AdminMaineSchema.from_orm, admins))
 
         except Exception as e:
-            raise HTTPException(500, str(e))
+            raise handle_exception(500, str(e))
 
     @staticmethod
     async def authenticate_admin(
@@ -94,7 +96,7 @@ class AdminServicesClass:
         except HTTPException as he:
             raise he
         except Exception as e:
-            raise HTTPException(500, str(e))
+            raise handle_exception(500, str(e))
 
     @staticmethod
     async def get_current_admin(
@@ -102,7 +104,7 @@ class AdminServicesClass:
         db: Session = Depends(get_db)
     ) -> AdminMaineSchema:
         try:
-            payload = _jwt.decode(token, _JWT_SECRET, algorithms=["HS256"])
+            payload = decode(token, JWT_SECRET, algorithms=["HS256"])
             admin_id = payload.get("id")
             is_admin = payload.get("is_admin")
             print(is_admin)
@@ -119,9 +121,9 @@ class AdminServicesClass:
 
             return admin
 
-        except _jwt.ExpiredSignatureError:
+        except ExpiredSignatureError:
             raise handle_exception(401, "Token expired")
-        except _jwt.PyJWTError:
+        except PyJWTError:
             raise handle_exception(401, "Invalid token")
 
         except HTTPException as he:
@@ -151,7 +153,7 @@ class AdminServicesClass:
             return db.query(Admin).filter(Admin.email == email).first()
 
         except Exception as e:
-            raise HTTPException(500, str(e))
+            raise handle_exception(500, str(e))
 
     @staticmethod
     async def update_admin(
@@ -183,7 +185,7 @@ class AdminServicesClass:
             raise he
         except Exception as e:
             db.rollback()
-            raise HTTPException(500, str(e))
+            raise handle_exception(500, str(e))
 
     @staticmethod
     async def delete_admin(db: Session, admin: Admin):
@@ -199,7 +201,7 @@ class AdminServicesClass:
         except HTTPException as he:
             raise he
         except Exception as e:
-            raise HTTPException(500, str(e))
+            raise handle_exception(500, str(e))
 
     @staticmethod
     async def get_user_by_id(user_id: int, db: Session):
@@ -212,4 +214,4 @@ class AdminServicesClass:
         except HTTPException as he:
             raise he
         except Exception as e:
-            raise HTTPException(500, str(e))
+            raise handle_exception(500, str(e))

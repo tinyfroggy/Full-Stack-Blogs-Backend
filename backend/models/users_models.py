@@ -1,7 +1,10 @@
-import datetime as _dt
-import sqlalchemy.orm as _orm
-import passlib.hash as _hash
+from datetime import datetime
+
 from sqlalchemy import Integer, Column, String, DateTime, Boolean
+from sqlalchemy.orm import relationship 
+
+from passlib.hash import bcrypt
+
 from dependencies.database import Base
 
 
@@ -18,16 +21,16 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     is_admin = Column(Boolean, default=False)
-    date_created = Column(DateTime, default=_dt.datetime.utcnow)
+    date_created = Column(DateTime, default=datetime.utcnow)
 
-    blogs = _orm.relationship("Blog", back_populates="owner", cascade="all, delete-orphan")
+    blogs = relationship("Blog", back_populates="owner", cascade="all, delete-orphan")
 
     def verify_password(self, password: str) -> bool:
-        return _hash.bcrypt.verify(password, self.hashed_password)  
+        return bcrypt.verify(password, self.hashed_password)  
 
     @classmethod
     def hash_password(cls, password: str) -> str:
-        return _hash.bcrypt.hash(password)
+        return bcrypt.hash(password)
 
 # every time you chang anything from models run this command
 # alembic revision --autogenerate -m "your message"

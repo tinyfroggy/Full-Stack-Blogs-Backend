@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-_JWT_SECRET = os.getenv("_JWT_SECRET")
+JWT_SECRET = os.getenv("JWT_SECRET")
 
 class TokenServiceClass:
 
@@ -16,7 +16,7 @@ class TokenServiceClass:
             expire = datetime.utcnow() + expires_delta
             to_encode.update({"exp": expire})
             encoded_jwt = _jwt.encode(
-                to_encode, _JWT_SECRET, algorithm="HS256")
+                to_encode, JWT_SECRET, algorithm="HS256")
             return encoded_jwt
 
         except Exception as e:

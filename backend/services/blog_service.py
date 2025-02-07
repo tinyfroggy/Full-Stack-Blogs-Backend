@@ -1,14 +1,16 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from schemas import users_schema
+
+from schemas import users_schema, blogs_schema  # Group schemas
 from models.blogs_models import Blog
-from exceptions.handlers import handle_exception
-from schemas import blogs_schema
+
 import os
 from dotenv import load_dotenv
 
+from exceptions.handlers import handle_exception
+
 load_dotenv()
-_JWT_SECRET = os.getenv("_JWT_SECRET")
+JWT_SECRET = os.getenv("JWT_SECRET")
 
 
 class BlogServicesClass:

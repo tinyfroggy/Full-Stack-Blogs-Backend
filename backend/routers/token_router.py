@@ -37,7 +37,7 @@ async def generate_token(
 async def generate_token(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
-    admin = await TokenServiceClass.authenticate_admin(
+    admin = await AdminServicesClass.authenticate_admin(
         email=form_data.username, password=form_data.password, db=db
     )
 
@@ -45,7 +45,7 @@ async def generate_token(
         handle_exception(401, "Incorrect email or password")
 
     # Create token with necessary data
-    token = AdminServicesClass.create_access_token(
+    token = TokenServiceClass.create_access_token(
         data={"sub": admin.email, "id": admin.id, "is_admin": admin.is_admin}
     )
 

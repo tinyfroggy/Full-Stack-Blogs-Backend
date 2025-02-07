@@ -1,19 +1,22 @@
-from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session
-from models.admins_models import Admin
-from schemas.admin_schema import AdminMaineSchema, AdminUpdate, AdminCreate
-from services.admin_service import AdminServicesClass
-from schemas.users_schema import User, UserUpdate
-from services.user_service import UserServicesClass
-from services.get_db_service import get_db
-from fastapi.security import OAuth2PasswordBearer
-import os
-from dotenv import load_dotenv
-from exceptions.handlers import handle_exception
 from typing import List
 
+from fastapi import APIRouter, Depends, status
+from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy.orm import Session
+import os
+from dotenv import load_dotenv
+
+from models.admins_models import Admin
+from schemas.admin_schema import AdminMaineSchema, AdminUpdate, AdminCreate
+from schemas.users_schema import User, UserUpdate
+
+from services.admin_service import AdminServicesClass
+from services.user_service import UserServicesClass
+from services.get_db_service import get_db
+from exceptions.handlers import handle_exception
+
 load_dotenv()
-_JWT_SECRET = os.getenv("_JWT_SECRET")
+JWT_SECRET = os.getenv("JWT_SECRET")
 oauth2_scheme = OAuth2PasswordBearer("/admins/token")
 
 router = APIRouter()

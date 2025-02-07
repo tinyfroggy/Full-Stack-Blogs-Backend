@@ -8,14 +8,14 @@ from schemas import users_schema, blogs_schema
 
 from exceptions.handlers import handle_exception
 import bcrypt
-import jwt as _jwt
+from jwt import decode, ExpiredSignatureError, DecodeError
 from email_validator import validate_email, EmailNotValidError
 from fastapi.security import OAuth2PasswordBearer
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
-_JWT_SECRET = os.getenv("_JWT_SECRET")
+JWT_SECRET = os.getenv("JWT_SECRET")
 
 oauth2_scheme = OAuth2PasswordBearer("/api/1/users/token")
 
@@ -24,12 +24,12 @@ class UserServicesClass:
     @staticmethod
     async def get_current_user_id(token: str = Depends(oauth2_scheme)):
         try:
-            payload = _jwt.decode(token, _JWT_SECRET, algorithms=["HS256"])
+            payload = decode(token, JWT_SECRET, algorithms=["HS256"])
             return payload.get("id")
 
-        except _jwt.ExpiredSignatureError:
+        except ExpiredSignatureError:
             handle_exception(401, "Token has expired")
-        except _jwt.DecodeError:
+        except DecodeError:
             handle_exception(401, "Invalid token")
         except Exception as e:
             handle_exception(500, str(e))
@@ -121,7 +121,7 @@ class UserServicesClass:
         token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
     ) -> User:
         try:
-            payload = _jwt.decode(token, _JWT_SECRET, algorithms=["HS256"])
+            payload = decode(token, JWT_SECRET, algorithms=["HS256"])
             user = db.get(User, payload.get("id"))
             if not user:
                 handle_exception(404, "User not found")
@@ -129,9 +129,9 @@ class UserServicesClass:
 
         except HTTPException as he:
             raise he
-        except _jwt.ExpiredSignatureError:
+        except ExpiredSignatureError:
             handle_exception(401, "Token has expired")
-        except _jwt.DecodeError:
+        except DecodeError:
             handle_exception(401, "Invalid token")
         except Exception as e:
             handle_exception(500, str(e))
