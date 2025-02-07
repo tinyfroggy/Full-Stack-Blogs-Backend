@@ -39,13 +39,14 @@ class AdminServicesClass:
                 valid = validate_email(admin.email)
                 email = valid.email
 
-            except EmailNotValidError:
+            except EmailNotValidError :
                 handle_exception(400, "Invalid email format")
 
             # Hash the password
             hashed_password = bcrypt.hashpw(
                 admin.password.encode("utf-8"), bcrypt.gensalt()
             ).decode("utf-8")
+
             admin_obj = Admin(
                 email=email, username=admin.username, hashed_password=hashed_password, is_admin=True
             )
@@ -54,11 +55,13 @@ class AdminServicesClass:
             db.commit()
             db.refresh(admin_obj)
             return admin_obj
+            # return AdminMaineSchema.from_orm(admin_obj)
 
         except HTTPException as he:
             raise he
         except Exception as e:
             db.rollback()
+            print(f"from create admin :{str(e)}")
             raise handle_exception(500, str(e))
 
     @staticmethod
@@ -68,6 +71,7 @@ class AdminServicesClass:
             return list(map(AdminMaineSchema.from_orm, admins))
 
         except Exception as e:
+            print(f"from create admin :{str(e)}")
             raise handle_exception(500, str(e))
 
     @staticmethod
@@ -89,13 +93,15 @@ class AdminServicesClass:
             # Check if the user has admin privileges
             if not admin.is_admin:
                 print(admin.is_admin)
-                handle_exception(403, "You do not have permission to access this resource")
+                handle_exception(
+                    403, "You do not have permission to access this resource")
 
             return admin
 
         except HTTPException as he:
             raise he
         except Exception as e:
+            print(f"from auth admin :{str(e)}")
             raise handle_exception(500, str(e))
 
     @staticmethod
@@ -119,7 +125,7 @@ class AdminServicesClass:
             if not admin:
                 handle_exception(404, "Admin not found")
 
-            return admin
+            return AdminMaineSchema.from_orm(admin)
 
         except ExpiredSignatureError:
             raise handle_exception(401, "Token expired")
@@ -129,6 +135,7 @@ class AdminServicesClass:
         except HTTPException as he:
             raise he
         except Exception as e:
+            print(f"from current admin :{str(e)}")
             raise handle_exception(500, str(e))
 
     @staticmethod
@@ -145,6 +152,7 @@ class AdminServicesClass:
         except HTTPException as he:
             raise he
         except Exception as e:
+            print(f"from by id admin :{str(e)}")
             raise handle_exception(500, str(e))
 
     @staticmethod
@@ -153,6 +161,7 @@ class AdminServicesClass:
             return db.query(Admin).filter(Admin.email == email).first()
 
         except Exception as e:
+            print(f"from by email admin :{str(e)}")
             raise handle_exception(500, str(e))
 
     @staticmethod
@@ -185,6 +194,7 @@ class AdminServicesClass:
             raise he
         except Exception as e:
             db.rollback()
+            print(f"from update admin :{str(e)}")
             raise handle_exception(500, str(e))
 
     @staticmethod
@@ -201,6 +211,7 @@ class AdminServicesClass:
         except HTTPException as he:
             raise he
         except Exception as e:
+            print(f"from delete admin :{str(e)}")
             raise handle_exception(500, str(e))
 
     @staticmethod
@@ -214,4 +225,5 @@ class AdminServicesClass:
         except HTTPException as he:
             raise he
         except Exception as e:
+            print(f"from user id :{str(e)}")
             raise handle_exception(500, str(e))
