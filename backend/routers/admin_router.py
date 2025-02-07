@@ -32,9 +32,7 @@ async def create_admin(
     if db_admin:
         return handle_exception(400, "Admin already registered")
 
-    new_admin = await AdminServicesClass.create_admin(admin=admin, db=db)
-
-    return AdminMaineSchema.from_orm(new_admin)
+    return await AdminServicesClass.create_admin(admin=admin, db=db)
 
 
 @router.get("/admins", response_model=List[AdminMaineSchema])
@@ -54,10 +52,7 @@ async def update_admin(
     admin=Depends(AdminServicesClass.get_current_admin),
     db: Session = Depends(get_db)
 ):
-    updated_admin = await AdminServicesClass.update_admin(
-        admin_update=admin_update, db=db, admin=admin
-    )
-    return AdminMaineSchema.from_orm(updated_admin)
+    return await AdminServicesClass.update_admin(admin_update=admin_update, admin=admin, db=db)
 
 # Update admin password endpoint
 # @router.put("/users/me/password", response_model=AdminMaineSchema, status_code=status.HTTP_200_OK)

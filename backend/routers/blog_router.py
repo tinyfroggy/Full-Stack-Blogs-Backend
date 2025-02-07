@@ -45,7 +45,7 @@ async def update_blog(
     user: users_schema.User = Depends(UserServicesClass.get_current_user), 
     db: Session = Depends(get_db)
 ):
-    updated_blog =  BlogServicesClass.update_blog(blog=blog, blog_id=blog_id, user=user, db=db)
+    updated_blog = await BlogServicesClass.update_blog(blog=blog, blog_id=blog_id, user=user, db=db)
     return Blog.from_orm(updated_blog)
 
 @router.delete("/blogs/{blog_id}", status_code=status.HTTP_204_NO_CONTENT)
