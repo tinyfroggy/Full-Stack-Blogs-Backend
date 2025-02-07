@@ -7,8 +7,6 @@ get all users -> ✅
 update user -> ✅
 delete user -> ✅
 
-check all endpoints and study them -> 
-
 users endpoints automating testing: 
 test create user -> ✅
 test get user ->  ✅
@@ -34,10 +32,6 @@ Like endpoints
 connect to blog ->
 like blog ->
 unlike blog ->
-
-add alembic for migrations ->
-add folder for authentication and move all functions to it ->
-
 
 """
 

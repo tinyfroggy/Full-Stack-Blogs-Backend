@@ -15,5 +15,5 @@ class Blog(Base):
     content = Column(String, index=True)
     created_at = Column(DateTime, default=_dt.datetime.utcnow)
     updated_at = Column(DateTime, default=_dt.datetime.utcnow, onupdate=_dt.datetime.utcnow)
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True, cascade="all, delete-orphan")
+    owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     owner = _orm.relationship("User", back_populates="blogs")

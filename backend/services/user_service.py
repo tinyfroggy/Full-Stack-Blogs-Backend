@@ -1,8 +1,11 @@
 from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 from .get_db_service import get_db
+
 from models.users_models import User
-from schemas import users_schema
+from models.blogs_models import Blog
+from schemas import users_schema, blogs_schema
+
 from exceptions.handlers import handle_exception
 import bcrypt
 import jwt as _jwt
@@ -101,8 +104,15 @@ class UserServicesClass:
         try:
             user_schema_obj = users_schema.User.from_orm(user)
             user_dict = user_schema_obj.dict()
-            if "date_created" in user_dict:
-                del user_dict["date_created"]
+            # delete fields that should not be included in the token
+            for field in ["date_created", "hashed_password"]:
+                user_dict.pop(field, None)
+
+            # check if the field is_admin is in the user_dict
+            # if not, add it with a default value of False
+            if "is_admin" not in user_dict:
+                user_dict["is_admin"] = getattr(user, "is_admin", False)
+
             token = _jwt.encode(user_dict, _JWT_SECRET, algorithm="HS256")
             return {"access_token": token, "token_type": "bearer"}
         except Exception as e:
@@ -146,20 +156,6 @@ class UserServicesClass:
         except Exception as e:
             handle_exception(500, str(e))
 
-    # Get user by ID
-    @staticmethod
-    async def get_user_by_id(user_id: int, db: Session = Depends(get_db)) -> User:
-        try:
-            user = db.query(User).filter(User.id == user_id).first()
-            if not user:
-                handle_exception(404, "User not found")
-            return user
-
-        except HTTPException as he:
-            raise he
-        except Exception as e:
-            handle_exception(500, str(e))
-
     # Get all users
     @staticmethod
     async def get_all_users(db: Session = Depends(get_db)) -> list[users_schema.User]:
@@ -168,6 +164,26 @@ class UserServicesClass:
             return list(map(users_schema.User.from_orm, users))
 
         except Exception as e:
+            handle_exception(500, str(e))
+
+    @staticmethod
+    async def update_user_password(
+        user: User, new_password: str, db: Session = Depends(get_db)
+    ) -> User:
+        try:
+            hashed_password = bcrypt.hashpw(
+                new_password.encode("utf-8"), bcrypt.gensalt()
+            ).decode("utf-8")
+            user.hashed_password = hashed_password
+
+            db.commit()
+            db.refresh(user)
+            return user
+
+        except HTTPException as he:
+            raise he
+        except Exception as e:
+            db.rollback()
             handle_exception(500, str(e))
 
     # Update user details
@@ -212,6 +228,7 @@ class UserServicesClass:
     @staticmethod
     async def delete_user(db: Session, user: User):
         try:
+
             if not user:
                 handle_exception(404, "User not found")
 
@@ -224,4 +241,18 @@ class UserServicesClass:
             raise he
         except Exception as e:
             db.rollback()
+            handle_exception(500, str(e))
+
+    # Get a all blogs for current user
+    @staticmethod
+    async def get_all_blogs_for_current_user(
+        user: User, db: Session = Depends(get_db)
+    ) -> list[blogs_schema.Blog]:
+        try:
+            blogs = db.query(Blog).filter(Blog.owner_id == user.id).all()
+            return list(map(blogs_schema.Blog.from_orm, blogs))
+
+        except HTTPException as he:
+            raise he
+        except Exception as e:
             handle_exception(500, str(e))

@@ -5,6 +5,7 @@ from dependencies.database import Base, engine
 def create_database():
     from models.blogs_models import Blog
     from models.users_models import User
+    from models.admins_models import Admin
 
     Base.metadata.create_all(bind=engine)
 
