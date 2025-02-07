@@ -97,19 +97,6 @@ class AdminServicesClass:
             raise HTTPException(500, str(e))
 
     @staticmethod
-    def create_access_token(data: dict, expires_delta: timedelta = timedelta(minutes=30)) -> str:
-        try:
-            to_encode = data.copy()
-            expire = datetime.utcnow() + expires_delta
-            to_encode.update({"exp": expire})
-            encoded_jwt = _jwt.encode(
-                to_encode, _JWT_SECRET, algorithm="HS256")
-            return encoded_jwt
-
-        except Exception as e:
-            raise handle_exception(500, f"Error creating token: {str(e)}")
-
-    @staticmethod
     async def get_current_admin(
         token: str = Depends(admin_oauth2_scheme),
         db: Session = Depends(get_db)

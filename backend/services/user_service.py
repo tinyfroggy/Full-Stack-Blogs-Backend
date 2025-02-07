@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 load_dotenv()
 _JWT_SECRET = os.getenv("_JWT_SECRET")
 
-oauth2_scheme = OAuth2PasswordBearer("/api/1/token")
+oauth2_scheme = OAuth2PasswordBearer("/api/1/users/token")
 
 
 class UserServicesClass:
@@ -96,26 +96,6 @@ class UserServicesClass:
             raise he
         except Exception as e:
             db.rollback()
-            handle_exception(500, str(e))
-
-    # Generate JWT token
-    @staticmethod
-    async def create_token(user: User):
-        try:
-            user_schema_obj = users_schema.User.from_orm(user)
-            user_dict = user_schema_obj.dict()
-            # delete fields that should not be included in the token
-            for field in ["date_created", "hashed_password"]:
-                user_dict.pop(field, None)
-
-            # check if the field is_admin is in the user_dict
-            # if not, add it with a default value of False
-            if "is_admin" not in user_dict:
-                user_dict["is_admin"] = getattr(user, "is_admin", False)
-
-            token = _jwt.encode(user_dict, _JWT_SECRET, algorithm="HS256")
-            return {"access_token": token, "token_type": "bearer"}
-        except Exception as e:
             handle_exception(500, str(e))
 
     # Authenticate user credentials

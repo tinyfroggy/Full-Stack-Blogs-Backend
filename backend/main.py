@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from routers import user_router, blog_router, admin_router
+from routers import user_router,  admin_router, blog_router, token_router 
 
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
@@ -12,13 +12,15 @@ app = FastAPI(
   description="API for blog"
 )
 
-app.include_router(user_router.router, tags=["users"], prefix=f"/api/{version}")
+app.include_router(user_router.router, tags=["Users"], prefix=f"/api/{version}")
 
-app.include_router(blog_router.router, tags=["blogs"], prefix=f"/api/{version}")
+app.include_router(admin_router.router, tags=["Admins"], prefix=f"/api/{version}")
 
-app.include_router(admin_router.router, tags=["admins"], prefix=f"/api/{version}")
+app.include_router(blog_router.router, tags=["Blogs"], prefix=f"/api/{version}")
 
-@app.get("/", tags=["root"])
+app.include_router(token_router.router, tags=["Token"], prefix=f"/api/{version}")
+
+@app.get("/", tags=["Root"])
 async def read_root():
   return {"message": "go to the /docs"}
 

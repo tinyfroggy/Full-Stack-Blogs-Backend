@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, status
-from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from services.get_db_service import get_db
 
@@ -18,6 +17,7 @@ router = APIRouter()
 async def get_all_users(db: Session = Depends(get_db)):
     return await UserServicesClass.get_all_users(db=db)
 
+
 # Endpoint to create a new user
 @router.post("/users", response_model=User, status_code=status.HTTP_201_CREATED)
 async def create_user(user: UserCreate, db: Session = Depends(get_db)):
@@ -31,19 +31,6 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
     return new_user
 
-# Endpoint to generate JWT token for authentication
-@router.post("/token", status_code=status.HTTP_200_OK)
-async def generate_token(
-    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
-):
-    user = await UserServicesClass.authenticate_user(
-        email=form_data.username, password=form_data.password, db=db
-    )
-
-    if not user:
-        return handle_exception(401, "Invalid Credentials")
-
-    return await UserServicesClass.create_token(user=user)
 
 # Endpoint to get the currently authenticated user
 @router.get("/users/me", response_model=User)

@@ -1,18 +1,16 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from models.admins_models import Admin
-from schemas.admin_schema import AdminMaineSchema, AdminBase, AdminUpdate, AdminCreate
+from schemas.admin_schema import AdminMaineSchema, AdminUpdate, AdminCreate
 from services.admin_service import AdminServicesClass
 from schemas.users_schema import User, UserUpdate
 from services.user_service import UserServicesClass
 from services.get_db_service import get_db
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordBearer
 import os
 from dotenv import load_dotenv
 from exceptions.handlers import handle_exception
 from typing import List
-import jwt as _jwt
-
 
 load_dotenv()
 _JWT_SECRET = os.getenv("_JWT_SECRET")
@@ -113,20 +111,3 @@ async def delete_user_by_id(
     return await UserServicesClass.delete_user(db=db, user=user)
 
 
-@router.post("/admins/token", status_code=status.HTTP_200_OK)
-async def generate_token(
-    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
-):
-    admin = await AdminServicesClass.authenticate_admin(
-        email=form_data.username, password=form_data.password, db=db
-    )
-
-    if not admin:
-        handle_exception(401, "Incorrect email or password")
-
-    # Create token with necessary data
-    token = AdminServicesClass.create_access_token(
-        data={"sub": admin.email, "id": admin.id, "is_admin": admin.is_admin}
-    )
-
-    return {"access_token": token, "token_type": "bearer"}
