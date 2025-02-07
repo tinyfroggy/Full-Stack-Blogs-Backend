@@ -15,7 +15,11 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
+
 JWT_SECRET = os.getenv("JWT_SECRET")
+if not JWT_SECRET:
+    raise RuntimeError(
+        "JWT_SECRET is not defined in the environment variables")
 
 oauth2_scheme = OAuth2PasswordBearer("/api/1/users/token")
 
@@ -36,7 +40,7 @@ class UserServicesClass:
 
     # Get user by email
     @staticmethod
-    async def get_user_by_email(email: str, db: Session = Depends(get_db)):
+    async def get_user_by_email(email: str, db: Session):
         try:
             return db.query(User).filter(User.email == email).first()
 
@@ -45,7 +49,7 @@ class UserServicesClass:
 
     # Get user by username
     @staticmethod
-    async def get_user_by_username(username: str, db: Session = Depends(get_db)):
+    async def get_user_by_username(username: str, db: Session):
         try:
             return db.query(User).filter(User.username == username).first()
 
@@ -55,7 +59,7 @@ class UserServicesClass:
     # Create a new user
     @staticmethod
     async def create_user(
-        user: users_schema.UserCreate, db: Session = Depends(get_db)
+        user: users_schema.UserCreate, db: Session
     ) -> users_schema.User:
         try:
             # Check if email is already registered
@@ -101,7 +105,7 @@ class UserServicesClass:
     # Authenticate user credentials
     @staticmethod
     async def authenticate_user(
-        email: str, password: str, db: Session = Depends(get_db)
+        email: str, password: str, db: Session
     ):
         try:
             user = await UserServicesClass.get_user_by_email(email=email, db=db)
@@ -138,7 +142,7 @@ class UserServicesClass:
 
     # Get all users
     @staticmethod
-    async def get_all_users(db: Session = Depends(get_db)) -> list[users_schema.User]:
+    async def get_all_users(db: Session) -> list[users_schema.User]:
         try:
             users = db.query(User).all()
             return list(map(users_schema.User.from_orm, users))
@@ -148,7 +152,7 @@ class UserServicesClass:
 
     @staticmethod
     async def update_user_password(
-        user: User, new_password: str, db: Session = Depends(get_db)
+        user: User, new_password: str, db: Session
     ) -> User:
         try:
             hashed_password = bcrypt.hashpw(
@@ -226,7 +230,7 @@ class UserServicesClass:
     # Get a all blogs for current user
     @staticmethod
     async def get_all_blogs_for_current_user(
-        user: User, db: Session = Depends(get_db)
+        user: User, db: Session
     ) -> list[blogs_schema.Blog]:
         try:
             blogs = db.query(Blog).filter(Blog.owner_id == user.id).all()

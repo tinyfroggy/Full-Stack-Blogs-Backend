@@ -10,7 +10,12 @@ from dotenv import load_dotenv
 from exceptions.handlers import handle_exception
 
 load_dotenv()
+
 JWT_SECRET = os.getenv("JWT_SECRET")
+if not JWT_SECRET:
+    raise RuntimeError(
+        "JWT_SECRET is not defined in the environment variables")
+
 
 
 class BlogServicesClass:
@@ -40,7 +45,7 @@ class BlogServicesClass:
             if user.id != blog.owner_id:
                 handle_exception(401, "Unauthorized")
 
-            return blogs_schema.Blog.from_orm(blog)
+            return blog
 
         except HTTPException as he:
             raise he
@@ -58,7 +63,7 @@ class BlogServicesClass:
             db.commit()
             db.refresh(blog_obj)
 
-            return blogs_schema.Blog.from_orm(blog_obj)
+            return blog_obj
 
         except Exception as e:
             db.rollback()
@@ -86,7 +91,7 @@ class BlogServicesClass:
             db.commit()
             db.refresh(blog_obj)
 
-            return blogs_schema.Blog.from_orm(blog_obj)
+            return blog_obj
 
         except HTTPException as he:
             db.rollback()

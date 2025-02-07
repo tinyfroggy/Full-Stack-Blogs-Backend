@@ -18,7 +18,12 @@ from exceptions.handlers import handle_exception
 
 
 load_dotenv()
-JWT_SECRET = os.getenv("_JWT_SECRET")
+
+JWT_SECRET = os.getenv("JWT_SECRET")
+if not JWT_SECRET:
+    raise RuntimeError(
+        "JWT_SECRET is not defined in the environment variables")
+
 admin_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/1/admin/token")
 
 
@@ -27,7 +32,7 @@ class AdminServicesClass:
     @staticmethod
     async def create_admin(
         admin: AdminCreate,
-        db: Session = Depends(get_db)
+        db: Session
     ) -> AdminMaineSchema:
         try:
             existing_admin = await AdminServicesClass.get_admin_by_email(admin.email, db)
@@ -39,7 +44,7 @@ class AdminServicesClass:
                 valid = validate_email(admin.email)
                 email = valid.email
 
-            except EmailNotValidError :
+            except EmailNotValidError:
                 handle_exception(400, "Invalid email format")
 
             # Hash the password
@@ -55,7 +60,6 @@ class AdminServicesClass:
             db.commit()
             db.refresh(admin_obj)
             return admin_obj
-            # return AdminMaineSchema.from_orm(admin_obj)
 
         except HTTPException as he:
             raise he
@@ -65,7 +69,7 @@ class AdminServicesClass:
             raise handle_exception(500, str(e))
 
     @staticmethod
-    async def get_all_admins(db: Session = Depends(get_db)) -> list[AdminMaineSchema]:
+    async def get_all_admins(db: Session) -> list[AdminMaineSchema]:
         try:
             admins = db.query(Admin).all()
             return list(map(AdminMaineSchema.from_orm, admins))
@@ -78,7 +82,7 @@ class AdminServicesClass:
     async def authenticate_admin(
         email: str,
         password: str,
-        db: Session = Depends(get_db)
+        db: Session
     ) -> Admin:
         try:
             # Retrieve the admin based on the email
@@ -125,7 +129,7 @@ class AdminServicesClass:
             if not admin:
                 handle_exception(404, "Admin not found")
 
-            return AdminMaineSchema.from_orm(admin)
+            return admin
 
         except ExpiredSignatureError:
             raise handle_exception(401, "Token expired")
@@ -156,7 +160,7 @@ class AdminServicesClass:
             raise handle_exception(500, str(e))
 
     @staticmethod
-    async def get_admin_by_email(email: str, db: Session = Depends(get_db)) -> AdminMaineSchema:
+    async def get_admin_by_email(email: str, db: Session) -> AdminMaineSchema:
         try:
             return db.query(Admin).filter(Admin.email == email).first()
 

@@ -34,7 +34,7 @@ async def create_admin(
 
     new_admin = await AdminServicesClass.create_admin(admin=admin, db=db)
 
-    return new_admin
+    return AdminMaineSchema.from_orm(new_admin)
 
 
 @router.get("/admins", response_model=List[AdminMaineSchema])
@@ -57,7 +57,7 @@ async def update_admin(
     updated_admin = await AdminServicesClass.update_admin(
         admin_update=admin_update, db=db, admin=admin
     )
-    return updated_admin
+    return AdminMaineSchema.from_orm(updated_admin)
 
 # Update admin password endpoint
 # @router.put("/users/me/password", response_model=AdminMaineSchema, status_code=status.HTTP_200_OK)
