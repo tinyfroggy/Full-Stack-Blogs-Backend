@@ -37,6 +37,7 @@ async def create_blog(
     new_blog = await BlogServicesClass.create_blog(blog=blog, user=user, db=db)
     return Blog.from_orm(new_blog)
 
+
 @router.put("/blogs/{blog_id}", response_model=Blog, status_code=status.HTTP_200_OK)
 async def update_blog(
     blog: BlogUpdate, 
