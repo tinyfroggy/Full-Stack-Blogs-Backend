@@ -130,14 +130,14 @@ class AdminServicesClass:
 
     @staticmethod
     @handle_exceptions
-    async def delete_admin(db: Session, admin: Admin):
+    async def delete_admin(db: Session, admin: Admin) -> dict | None:
         get_or_404(Admin, db, id=admin.id)
         db.delete(admin)
         db.commit()
-        return {"message": "Admin deleted successfully"}
+        return {}
 
     @staticmethod
     @handle_exceptions
-    async def get_user_by_id(user_id: int, db: Session):
+    async def get_user_by_id(user_id: int, db: Session) -> User: 
         user = get_or_404(User, db, id=user_id)
         return user

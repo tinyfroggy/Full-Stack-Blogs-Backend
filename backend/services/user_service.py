@@ -16,6 +16,8 @@ from dotenv import load_dotenv
 
 from utils.services_utils import get_or_404, authorize_user, handle_exceptions
 
+from jwt import PyJWTError, decode, ExpiredSignatureError
+
 load_dotenv()
 
 JWT_SECRET = os.getenv("JWT_SECRET")
@@ -29,21 +31,27 @@ oauth2_scheme = OAuth2PasswordBearer("/api/1/users/token")
 class UserServicesClass:
     @staticmethod
     @handle_exceptions
-    async def get_current_user_id(token: str = Depends(oauth2_scheme)):
+    async def get_current_user_id(token: str = Depends(oauth2_scheme)) -> int | None:
         payload = decode(token, JWT_SECRET, algorithms=["HS256"])
         return payload.get("id")
 
     # Get user by email
     @staticmethod
     @handle_exceptions
-    async def get_user_by_email(email: str, db: Session):
+    async def get_user_by_email(email: str, db: Session) -> User | None: 
         return db.query(User).filter(User.email == email).first()
 
     # Get user by username
     @staticmethod
     @handle_exceptions
-    async def get_user_by_username(username: str, db: Session):
+    async def get_user_by_username(username: str, db: Session) -> User | None: 
         return db.query(User).filter(User.username == username).first()
+
+    # Get user by ID
+    @staticmethod
+    @handle_exceptions
+    async def get_user_by_id(user_id: int, db: Session) -> User | None: 
+        return db.query(User).filter(User.id == user_id).first()
 
     # Create a new user
     @staticmethod
@@ -85,7 +93,7 @@ class UserServicesClass:
     # Authenticate user (email and password)
     @staticmethod
     @handle_exceptions
-    async def authenticate_user(email: str, password: str, db: Session):
+    async def authenticate_user(email: str, password: str, db: Session) -> User | None:
         user = await UserServicesClass.get_user_by_email(email=email, db=db)
         if not user or not user.verify_password(password):
             handle_exception(401, "Invalid email or password")
@@ -93,15 +101,30 @@ class UserServicesClass:
 
     # Get the current user using the token
     @staticmethod
-    @handle_exceptions
     async def get_current_user(
-        token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+        token: str = Depends(oauth2_scheme), 
+        db: Session = Depends(get_db)
     ) -> User:
-        payload = decode(token, JWT_SECRET, algorithms=["HS256"])
-        user = db.get(User, payload.get("id"))
-        if not user:
-            handle_exception(404, "User not found")
-        return user
+        try:
+            payload = decode(token, JWT_SECRET, algorithms=["HS256"])
+            user_id = payload.get("id")
+
+            if not user_id:
+                raise handle_exception(401, "Invalid token: Missing user ID")
+
+            user = await UserServicesClass.get_user_by_id(user_id, db)
+            if not user:
+                raise handle_exception(404, "User not found")
+
+            return user
+
+        except ExpiredSignatureError:
+            print("Token expired")  
+            raise handle_exception(401, "Token expired")
+
+        except PyJWTError as e:
+            print(f"JWT Error: {e}")  
+            raise handle_exception(401, "Invalid token")
 
     # Get all users
     @staticmethod
@@ -159,12 +182,12 @@ class UserServicesClass:
     # Delete user
     @staticmethod
     @handle_exceptions
-    async def delete_user(db: Session, user: User):
+    async def delete_user(db: Session, user: User) -> dict | None:
         # Use the helper function get_or_404 to ensure the user exists
         user = get_or_404(User, db, id=user.id)
         db.delete(user)
         db.commit()
-        return {"message": "User deleted successfully"}
+        return {}
 
     # Get all blogs for the current user
     @staticmethod
@@ -173,4 +196,6 @@ class UserServicesClass:
         user: User, db: Session
     ) -> list[blogs_schema.Blog]:
         blogs = db.query(Blog).filter(Blog.owner_id == user.id).all()
+        if not blogs:
+            handle_exception(404, "No blogs found")
         return list(map(blogs_schema.Blog.from_orm, blogs))

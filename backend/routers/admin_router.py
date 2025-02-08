@@ -26,7 +26,7 @@ router = APIRouter()
 async def create_admin(
     admin: AdminCreate,
     db: Session = Depends(get_db),
-):
+) -> AdminMaineSchema:
     db_admin = await AdminServicesClass.get_admin_by_email(email=admin.email, db=db)
 
     if db_admin:
@@ -36,7 +36,7 @@ async def create_admin(
 
 
 @router.get("/admins", response_model=List[AdminMaineSchema])
-async def get_all_admins(db: Session = Depends(get_db)):
+async def get_all_admins(db: Session = Depends(get_db)) -> List[AdminMaineSchema]:
     return await AdminServicesClass.get_all_admins(db=db)
 
 
@@ -51,7 +51,7 @@ async def update_admin(
     admin_update: AdminUpdate,
     admin=Depends(AdminServicesClass.get_current_admin),
     db: Session = Depends(get_db)
-):
+) -> AdminMaineSchema:
     return await AdminServicesClass.update_admin(admin_update=admin_update, admin=admin, db=db)
 
 # Update admin password endpoint
@@ -80,7 +80,7 @@ async def get_user(
     user_id: int,
     db: Session = Depends(get_db),
     admin=Depends(AdminServicesClass.get_current_admin),
-):
+) -> User:
     if not admin:
         handle_exception(401, "You are not Admin")
 
@@ -93,7 +93,7 @@ async def update_user_by_id(
     user_update: UserUpdate,
     db: Session = Depends(get_db),
     admin=Depends(AdminServicesClass.get_current_admin),
-):
+) -> User:
     user = await AdminServicesClass.get_user_by_id(user_id=user_id, db=db)
     updated_user = await UserServicesClass.update_user(user_update=user_update, db=db, user=user)
     return updated_user

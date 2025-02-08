@@ -12,19 +12,12 @@ from services.get_db_service import get_db
 
 router = APIRouter()
 
-@router.get("/blogs", response_model=List[Blog], status_code=status.HTTP_200_OK)
-async def get_all_blogs_from_current_user(
-    user: users_schema.User = Depends(UserServicesClass.get_current_user), 
-    db: Session = Depends(get_db)
-):
-    return await BlogServicesClass.get_all_blogs_from_current_user(user=user, db=db)
-
 @router.get("/blogs/{blog_id}", response_model=Blog, status_code=status.HTTP_200_OK)
 async def get_one_blog_from_current_user(
     blog_id: int,
     user: users_schema.User = Depends(UserServicesClass.get_current_user),
     db: Session = Depends(get_db)
-):
+) -> Blog:
     spesific_blog = await BlogServicesClass.get_one_blog_from_current_user(blog_id=blog_id, user=user, db=db)
     return Blog.from_orm(spesific_blog)
 
@@ -33,7 +26,7 @@ async def create_blog(
     blog: BlogCreate, 
     user: users_schema.User = Depends(UserServicesClass.get_current_user), 
     db: Session = Depends(get_db)
-):
+) -> Blog:
     new_blog = await BlogServicesClass.create_blog(blog=blog, user=user, db=db)
     return Blog.from_orm(new_blog)
 
@@ -44,7 +37,7 @@ async def update_blog(
     blog_id: int, 
     user: users_schema.User = Depends(UserServicesClass.get_current_user), 
     db: Session = Depends(get_db)
-):
+) -> Blog:
     updated_blog = await BlogServicesClass.update_blog(blog=blog, blog_id=blog_id, user=user, db=db)
     return Blog.from_orm(updated_blog)
 
@@ -57,5 +50,5 @@ async def delete_blog(
     await BlogServicesClass.delete_blog(blog_id=blog_id, user=user, db=db)
 
 @router.get("/all/blogs", response_model=List[Blog], status_code=status.HTTP_200_OK)
-async def get_all_blogs(db: Session = Depends(get_db)):
+async def get_all_blogs(db: Session = Depends(get_db)) -> List[Blog]:
     return await BlogServicesClass.get_all_blogs(db=db)

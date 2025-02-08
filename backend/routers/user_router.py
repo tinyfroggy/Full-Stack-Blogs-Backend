@@ -16,13 +16,13 @@ router = APIRouter()
 
 # Endpoint to get all users
 @router.get("/users", response_model=List[User])
-async def get_all_users(db: Session = Depends(get_db)):
+async def get_all_users(db: Session = Depends(get_db)) -> List[User]:
     return await UserServicesClass.get_all_users(db=db)
 
 
 # Endpoint to create a new user
 @router.post("/users", response_model=User, status_code=status.HTTP_201_CREATED)
-async def create_user(user: UserCreate, db: Session = Depends(get_db)):
+async def create_user(user: UserCreate, db: Session = Depends(get_db)) -> User:
     # Check if email is already registered
     db_user = await UserServicesClass.get_user_by_email(email=user.email, db=db)
 
@@ -36,7 +36,7 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
 # Endpoint to get the currently authenticated user
 @router.get("/users/me", response_model=User)
-async def get_current_user(user: User = Depends(UserServicesClass.get_current_user)):
+async def get_current_user(user: User = Depends(UserServicesClass.get_current_user)) -> User:
     return user
 
 # Update user endpoint
@@ -47,7 +47,7 @@ async def update_user(
         UserServicesClass.get_current_user
     ),  # Ensure the user is authenticated
     db: Session = Depends(get_db),
-):
+) -> User:
     updated_user = await UserServicesClass.update_user(
         user_update=user_update, db=db, user=user
     )
@@ -79,9 +79,9 @@ async def delete_user(
 
 
 # Get all blogs for current user
-@router.get("/users/me/blogs", response_model=list[Blog])
+@router.get("/users/me/blogs", response_model=list[Blog], status_code=status.HTTP_200_OK)
 async def get_all_blogs_for_current_user(
     user=Depends(UserServicesClass.get_current_user),
     db: Session = Depends(get_db),
-):
+) -> list[Blog]:
     return await UserServicesClass.get_all_blogs_for_current_user(user=user, db=db)
