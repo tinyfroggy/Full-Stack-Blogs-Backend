@@ -6,6 +6,14 @@ import os
 
 load_dotenv()
 JWT_SECRET = os.getenv("JWT_SECRET")
+if not JWT_SECRET:
+    raise RuntimeError(
+        "JWT_SECRET is not defined in the environment variables")
+
+ALGORITHM = os.getenv("ALGORITHM")
+if not ALGORITHM:
+    raise RuntimeError(
+        "ALGORITHM is not defined in the environment variables")
 
 class TokenServiceClass:
 
@@ -16,7 +24,7 @@ class TokenServiceClass:
             expire = datetime.utcnow() + expires_delta
             to_encode.update({"exp": expire})
             encoded_jwt = _jwt.encode(
-                to_encode, JWT_SECRET, algorithm="HS256")
+                to_encode, JWT_SECRET, algorithm=ALGORITHM)
             return encoded_jwt
 
         except Exception as e:

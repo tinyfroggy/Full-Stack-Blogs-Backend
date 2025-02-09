@@ -24,6 +24,11 @@ if not JWT_SECRET:
     raise RuntimeError(
         "JWT_SECRET is not defined in the environment variables")
 
+ALGORITHM = os.getenv("ALGORITHM")
+if not ALGORITHM:
+    raise RuntimeError(
+        "ALGORITHM is not defined in the environment variables")
+
 admin_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/1/admin/token")
 
 
@@ -79,7 +84,7 @@ class AdminServicesClass:
         db: Session = Depends(get_db)
     ) -> AdminMaineSchema:
         try:
-            payload = decode(token, JWT_SECRET, algorithms=["HS256"])
+            payload = decode(token, JWT_SECRET, algorithms=[ALGORITHM])
             admin_id = payload.get("id")
             is_admin = payload.get("is_admin")
 

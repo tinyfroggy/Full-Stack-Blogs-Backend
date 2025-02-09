@@ -25,6 +25,11 @@ if not JWT_SECRET:
     raise RuntimeError(
         "JWT_SECRET is not defined in the environment variables")
 
+ALGORITHM = os.getenv("ALGORITHM")
+if not ALGORITHM:
+    raise RuntimeError(
+        "ALGORITHM is not defined in the environment variables")
+
 oauth2_scheme = OAuth2PasswordBearer("/api/1/users/token")
 
 
@@ -32,7 +37,7 @@ class UserServicesClass:
     @staticmethod
     @handle_exceptions
     async def get_current_user_id(token: str = Depends(oauth2_scheme)) -> int | None:
-        payload = decode(token, JWT_SECRET, algorithms=["HS256"])
+        payload = decode(token, JWT_SECRET, algorithms=[ALGORITHM])
         return payload.get("id")
 
     # Get user by email
@@ -106,7 +111,7 @@ class UserServicesClass:
         db: Session = Depends(get_db)
     ) -> User:
         try:
-            payload = decode(token, JWT_SECRET, algorithms=["HS256"])
+            payload = decode(token, JWT_SECRET, algorithms=[ALGORITHM])
             user_id = payload.get("id")
 
             if not user_id:
