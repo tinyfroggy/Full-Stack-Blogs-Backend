@@ -23,7 +23,7 @@ This is a FastAPI project for managing blogs and users. The project includes use
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/tinyfroggy/full-stake-blogs/tree/main
+   git clone https://github.com/tinyfroggy/full-stake-blogs-backend
    ```
 
 ## Running the Project Locally
