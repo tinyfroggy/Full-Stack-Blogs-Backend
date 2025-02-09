@@ -24,7 +24,6 @@ This is a FastAPI project for managing blogs and users. The project includes use
 1. Clone the repository:
    ```sh
    git clone https://github.com/tinyfroggy/full-stake-blogs/tree/main
-   cd backend
    ```
 
 ## Running the Project Locally
@@ -46,11 +45,13 @@ This is a FastAPI project for managing blogs and users. The project includes use
    SECRET_KEY=your_secret_key
    ALGORITHM=HS256
    ACCESS_TOKEN_EXPIRE_MINUTES=30
+   JWT_SECRET=secret
+   BASE_URL=http://localhost:8000/api/1
    ```
 
-4. Run the database migrations:
+4. Navigate to the backend directory:
    ```sh
-   alembic upgrade head
+   cd backend
    ```
 
 5. Start the FastAPI server:
