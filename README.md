@@ -8,7 +8,6 @@ This is a FastAPI project for managing blogs and users. The project includes use
 - Blog creation, update, and deletion
 - User profile management
 - JWT-based authentication
-- Database migrations with Alembic
 
 ## Requirements
 
