@@ -60,3 +60,5 @@ This is a FastAPI project for managing blogs and users. The project includes use
    ```
 
 6. Open your browser and navigate to `http://127.0.0.1:8000/docs` to access the API documentation.
+
+7. I Recommend to use Postman to test the API endpoints you can use this workspace to test the API [Postman Workspace](https://www.postman.com/joint-operations-engineer-27536965/workspace/blogs-testing)
